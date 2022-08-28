@@ -2,22 +2,16 @@
 
 namespace App\Command;
 
-use App\Entity\Machine;
 use App\Services\BalancerService;
-use Cassandra\Exception\ValidationException;
-use Doctrine\ORM\EntityManager;
-use Symfony\Bridge\Doctrine\ManagerRegistry;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\HttpKernel\KernelInterface;
 
-class AddMachine extends Command
+#[AsCommand(name: 'machine:add', description: 'Add new work machine to db')]
+class AddMachineCommand extends Command
 {
-    protected static $defaultName = 'machine:add';
-    protected static $defaultDescription = 'Add new machine to db';
-
     private const CPU = 'cpu';
     private const MEMORY = 'memory';
 

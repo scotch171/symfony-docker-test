@@ -15,9 +15,13 @@ class BalancerService
     {
     }
 
+    /**
+     * @throws Exception
+     */
     public function addProcess(int $cpu, int $memory, string $name): void
     {
-        $machine = $this->getMachineToProcess($cpu, $memory);
+        $machines = $this->machineRepository->findAll();
+        $machine = $this->selectMachineToProcess($cpu, $memory, $machines);
 
         $process = new Process();
         $process->setMachineId($machine);
@@ -44,28 +48,28 @@ class BalancerService
         $machine->setCpu($cpu);
         $machine->setMemory($memory);
         $this->machineRepository->add($machine, true);
+
+        $this->rebalance();
     }
 
-    public function deleteMachine(): void
+    public function deleteMachine(int $id): void
     {
-
+        $machineForDelete = $this->machineRepository->find($id);
+        $this->rebalance($id);
+        $this->machineRepository->remove($machineForDelete, true);
     }
 
     /**
-     * @return Machine[]
+     * @param Machine[] $machines
+     * @throws Exception
      */
-    private function getMachines(): array
-    {
-        return $this->machineRepository->findAll();
-    }
-
-    private function getMachineToProcess(int $cpu,int $memory): Machine
+    private function selectMachineToProcess(int $cpu,int $memory, array $machines): Machine
     {
         $candidates = [];
-        $machines = $this->getMachines();
 
         foreach ($machines as $index => $machine) {
             [$freeCpu, $freeMemory] = $machine->getFreeCpuAndMemory();
+
             if ($freeCpu - $cpu && $freeMemory - $memory) {
                 $candidates[$index] = $freeCpu + $freeMemory;
             }
@@ -76,5 +80,32 @@ class BalancerService
         }
 
         return $machines[array_keys($candidates, max($candidates))[0]];
+    }
+
+    /**
+     * @throws Exception
+     */
+    public function rebalance(?int $machineForDelete = null): void
+    {
+        $machines = $this->machineRepository->findAll();
+        $processes = [];
+
+        foreach ($machines as $index => $machine) {
+            foreach ($machine->getProcesses() as $process) {
+                $machine->removeProcess($process);
+                $processes[] = $process;
+            }
+
+            if ($machineForDelete && $machine->getId() === $machineForDelete) {
+                unset($machines[$index]);
+            }
+        }
+
+        /** @var Process[] $processes */
+        foreach ($processes as $process) {
+            $newMachine = $this->selectMachineToProcess($process->getCpu(), $process->getMemory(), $machines);
+            $newMachine->addProcess($process);
+            $this->processRepository->add($process, true);
+        }
     }
 }

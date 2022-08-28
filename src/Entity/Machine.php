@@ -71,6 +71,7 @@ class Machine
         if (!$this->processes->contains($process)) {
             $this->processes[] = $process;
             $process->setMachineId($this);
+            //TODO: Само размещение процесса
         }
 
         return $this;

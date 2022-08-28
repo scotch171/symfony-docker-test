@@ -3,18 +3,16 @@
 namespace App\Command;
 
 use App\Services\BalancerService;
-use Cassandra\Exception\ValidationException;
 use Exception;
+use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class AddProcess extends Command
+#[AsCommand(name: 'process:add', description: 'Add new process')]
+class AddProcessCommand extends Command
 {
-    protected static $defaultName = 'process:add';
-    protected static $defaultDescription = 'Add new process';
-
     private const NAME = 'name';
     private const CPU = 'cpu';
     private const MEMORY = 'memory';
@@ -45,5 +43,4 @@ class AddProcess extends Command
             return Command::FAILURE;
         }
     }
-
 }
