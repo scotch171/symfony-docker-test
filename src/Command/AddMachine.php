@@ -21,6 +21,11 @@ class AddMachine extends Command
     private const CPU = 'cpu';
     private const MEMORY = 'memory';
 
+    public function __construct(private BalancerService $balancerService)
+    {
+        parent::__construct();
+    }
+
     protected function configure()
     {
         $this->addArgument(self::CPU, InputArgument::REQUIRED, 'CPU value');
@@ -29,14 +34,9 @@ class AddMachine extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        /** @var KernelInterface $kernel */
-        $kernel = $this->getApplication()->getKernel();
-        $em = $kernel->getContainer()->get('doctrine')->getManager();
-
-        $balancer = new BalancerService($em);
         $cpu = (int)$input->getArgument(self::CPU);
         $memory = (int)$input->getArgument(self::MEMORY);
-        $balancer->addMachine($cpu, $memory);
+        $this->balancerService->addMachine($cpu, $memory);
 
         return Command::SUCCESS;
     }

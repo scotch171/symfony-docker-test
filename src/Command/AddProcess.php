@@ -19,6 +19,11 @@ class AddProcess extends Command
     private const CPU = 'cpu';
     private const MEMORY = 'memory';
 
+    public function __construct(private BalancerService $balancerService)
+    {
+        parent::__construct();
+    }
+
     protected function configure()
     {
         $this->addArgument(self::NAME, InputArgument::REQUIRED, 'Process name');
@@ -28,17 +33,12 @@ class AddProcess extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $kernel = $this->getApplication()->getKernel();
-        $em = $kernel->getContainer()->get('doctrine')->getManager();
-
-        $balancer = new BalancerService($em);
-
         $name = $input->getArgument(self::NAME);
         $cpu = $input->getArgument(self::CPU);
         $memory = $input->getArgument(self::MEMORY);
 
         try {
-            $balancer->addProcess($cpu, $memory, $name);
+            $this->balancerService->addProcess($cpu, $memory, $name);
             return Command::SUCCESS;
         } catch (Exception $e) {
             $output->write($e->getMessage());

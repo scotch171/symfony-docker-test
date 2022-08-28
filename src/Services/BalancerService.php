@@ -4,17 +4,15 @@ namespace App\Services;
 
 use App\Entity\Machine;
 use App\Entity\Process;
-use Cassandra\Exception\ValidationException;
-use Doctrine\ORM\EntityManager;
+use App\Repository\MachineRepository;
+use App\Repository\ProcessRepository;
 use Exception;
 
 class BalancerService
 {
-    private EntityManager $entityManager;
 
-    public function __construct(EntityManager $entityManager)
+    public function __construct(private MachineRepository $machineRepository, private ProcessRepository $processRepository)
     {
-        $this->entityManager = $entityManager;
     }
 
     public function addProcess(int $cpu, int $memory, string $name): void
@@ -27,12 +25,16 @@ class BalancerService
         $process->setMemory($memory);
         $process->setName($name);
 
-        $this->entityManager->persist($process);
-        $this->entityManager->flush();
+        $this->processRepository->add($process, true);
     }
 
-    public function deleteProcess(): void
+    public function deleteProcess(int $id): void
     {
+        $process = $this->processRepository->find($id);
+        if (!$process) {
+            throw new Exception('Process not found');
+        }
+        $this->processRepository->remove($process, true);
 
     }
 
@@ -41,8 +43,7 @@ class BalancerService
         $machine = new Machine();
         $machine->setCpu($cpu);
         $machine->setMemory($memory);
-        $this->entityManager->persist($machine);
-        $this->entityManager->flush();
+        $this->machineRepository->add($machine, true);
     }
 
     public function deleteMachine(): void
@@ -51,11 +52,11 @@ class BalancerService
     }
 
     /**
-     * @return array<Machine>
+     * @return Machine[]
      */
     private function getMachines(): array
     {
-        return $this->entityManager->getRepository(Machine::class)->findAll();
+        return $this->machineRepository->findAll();
     }
 
     private function getMachineToProcess(int $cpu,int $memory): Machine
