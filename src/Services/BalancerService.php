@@ -70,7 +70,7 @@ class BalancerService
         foreach ($machines as $index => $machine) {
             [$freeCpu, $freeMemory] = $machine->getFreeCpuAndMemory();
 
-            if ($freeCpu - $cpu && $freeMemory - $memory) {
+            if ($freeCpu > $cpu && $freeMemory > $memory) {
                 $candidates[$index] = $freeCpu + $freeMemory;
             }
         }
