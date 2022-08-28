@@ -87,4 +87,18 @@ class Machine
 
         return $this;
     }
+
+    public function getFreeCpuAndMemory(): array
+    {
+
+        $freeCpu = $this->getCpu();
+        $freeMemory = $this->getMemory();
+
+        foreach ($this->getProcesses() as $process) {
+            $freeCpu -= $process->getCpu();
+            $freeMemory -= $process->getMemory();
+        }
+
+        return [$freeCpu, $freeMemory];
+    }
 }

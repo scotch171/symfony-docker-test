@@ -29,15 +29,13 @@ class AddMachine extends Command
 
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $cpu = (int)$input->getArgument(self::CPU);
-        $memory = (int)$input->getArgument(self::MEMORY);
-
-        $output->writeln([$cpu, $memory]);
         /** @var KernelInterface $kernel */
         $kernel = $this->getApplication()->getKernel();
         $em = $kernel->getContainer()->get('doctrine')->getManager();
 
         $balancer = new BalancerService($em);
+        $cpu = (int)$input->getArgument(self::CPU);
+        $memory = (int)$input->getArgument(self::MEMORY);
         $balancer->addMachine($cpu, $memory);
 
         return Command::SUCCESS;
